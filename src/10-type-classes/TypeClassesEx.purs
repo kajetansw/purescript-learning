@@ -3,7 +3,8 @@ module TypeClassesEx where
 import Prelude
 
 import Data.Array ((:))
-import Data.Foldable (class Foldable, foldMap, foldl, foldr)
+import Data.Foldable (class Foldable, foldMap, foldl, foldr, maximum)
+import Data.Maybe (fromJust)
 
 
 -- chapter 6.4
@@ -54,3 +55,24 @@ instance foldableOneMore :: (Foldable f) => Foldable (OneMore f) where
   foldr f b (OneMore x ys) = f x (foldr f b ys)
   foldl f b (OneMore x ys) = f (foldl f b ys) x
   foldMap f (OneMore x ys) = append (f x) (foldMap f ys)
+
+-- chapter 6.11
+
+maxInt :: Partial => Array Int -> Int
+maxInt xs = fromJust $ maximum xs
+
+class Monoid m <= Action m a where
+  act :: m -> a -> a
+
+newtype Multiply = Multiply Int
+
+instance semigroupMultiply :: Semigroup Multiply where
+  append (Multiply n) (Multiply m) = Multiply (n * m)
+
+instance monoidMultiply :: Monoid Multiply where
+  mempty = Multiply 1
+
+instance repeatAction :: Action Multiply String where
+  act (Multiply 1) s = s
+  act (Multiply n) s = s <> (act (Multiply (n - 1)) s) 
+
